@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block main-content %}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="text-center">DONATE</h1>
+                </div>
+                <div class="card-body">
+                    <form id="donation-form">
+                        <div class="form-group">
+                            <label for="donationAmount">Enter Donation Amount (USD)</label>
+                            <input type="number" class="form-control my-3" id="donationAmount" placeholder="Enter amount" min="1" step="1" required>
+                        </div>
+                        <div id="paypal-button-container"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include the PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AWFAXVewm9ugFWbJf01EZ-8FU4VbP1B2VY-kW9eUpgqDuYg7X2Ru3DCn5bj2jdCz4QeuGtLfdZqA9D-B&currency=USD"></script>
+
+<script>
+    let currentDonationAmount = 0;
+
+    function setupPayPalButton(amount) {
+        document.getElementById('paypal-button-container').innerHTML = '';
+
+        paypal.Buttons({
+            createOrder: function (data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount.toString()
+                        }
+                    }]
+                });
+            },
+            onApprove: function (data, actions) {
+                return actions.order.capture().then(function (details) {
+                    alert('Transaction completed by ' + details.payer.name.given_name + '!');
+                    document.getElementById('donation-form').submit();  
+                });
+            }
+        }).render('#paypal-button-container');
+    }
+
+    document.getElementById('donationAmount').addEventListener('input', function (event) {
+        const donationAmount = parseFloat(event.target.value);
+        if (donationAmount > 0) {
+            currentDonationAmount = donationAmount;
+            setupPayPalButton(currentDonationAmount);
+        }
+    });
+
+    document.getElementById('donation-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (currentDonationAmount <= 0) {
+            alert('Please enter a valid donation amount.');
+        }
+    });
+</script>
+
+{% endblock main-content %}
